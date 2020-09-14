@@ -6,17 +6,12 @@ Created on Tue Jul  7 12:58:44 2020
 """
 
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Jun  9 22:11:48 2020
 
-@author: gauri
-"""
 import numpy as np
 import pandas as pd
 from scipy.stats import norm 
 import scipy.stats as stats
 import seaborn as sns
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
@@ -425,7 +420,7 @@ def opt_RORAC_plot(avg,std,cov_mat,size,num_sim,ts,rhos,alpha,allo,measure,data_
         
     
     
-def homegrown_optimizer(data,alpha):
+def simple_optimizer(data,alpha):
     
     ws = np.linspace(0,1,250)
     rorac = []
@@ -477,7 +472,7 @@ if __name__ == '__main__':
     #data = sim.get_vasicek_data(ts1,rhos)
     #data2 = sim.get_vasicek_data(ts2,rhos)
     
-    #w,rorac = homegrown_optimizer(avg,std,cov_mat,size,ts1,rhos,alpha,allo,measure,data_type)
+    #w,rorac = simple_optimizer(avg,std,cov_mat,size,ts1,rhos,alpha,allo,measure,data_type)
     #print("opt w",w, "rorac",rorac)
     #plot = weight_deviation_plot(avg,std,cov_mat,size,ts1,rhos,alpha,allo,measure,data_type)
     #optimizer finds weights for maximum RORAC
