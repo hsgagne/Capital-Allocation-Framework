@@ -5,8 +5,7 @@ Created on Tue Jul  7 12:58:44 2020
 @author: hsgag
 """
 
-# -*- coding: utf-8 -*-
-
+#Imports
 import numpy as np
 import pandas as pd
 from scipy.stats import norm 
@@ -15,25 +14,37 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-
 import scipy
 import scipy.optimize as optim
 from scipy.optimize import root
 import math
-
 from parms import calc_sim_params
 
 
 
 
 class Simulation():
-    
+    """
+    Simulation Class generates random data for various loss distributions
+    Number of variables to simulate is determined by the size of the input arrays
+    """
     def __init__(self,avg,std,corr,size):
+        """
+        Initialize simulation, all params must have consistent dimensions
         
+        PARAMS:
+            avg: array of individual return means
+            std: array of std deviations
+            corr: correlation matrix
+            size: size of the simulation
+        """
+        #initialize parameters
         self.avg = np.array(avg)
         self.std = np.array(std)
         self.corr = np.array(corr)
         self.size = size
+        
+        #create normal data used for Vasicek dist
         self.normd = self.get_normal_data()
         
     def get_normal_data(self): #generate multivariate normal data 
@@ -49,40 +60,53 @@ class Simulation():
         return returns    
     
     def get_vasicek_data(self, ts,rhos): #generate vasicek data from normal data
-        
+        """
+        PARAMS:
+            ts: array of asset default threshold
+            rhos: array of systematic risk factors
+        """
+        #get normal data
         norm_data = self.normd
+        
+        #get the i.c.d.f of the t values
         tts = [norm.ppf(ts[i]) for i in range(len(ts))]
         
+        #initialize the result dataframe
         vasi = pd.DataFrame(columns= ['Asset %i'%(i+1) for i in range(len(self.avg))])
         idx = 0
+        #for each asset
         for col in vasi.columns:
+            #calculate the value of the vasicek r.v.
             vasi[col] = norm.pdf((tts[idx] - norm_data[col] * np.sqrt(rhos[idx])) / np.sqrt(1-rhos[idx]))
             idx +=1
             
         return vasi   
     
-    def get_copula_data(self):
-        ''' type: gaussian or t
-        '''
+    def get_copula_data(self): #generates Gaussian Copula Data
         
+        #get covariance matrix from correlation
         var = self.std**2
         var = np.diag(var)
         cov = np.matmul(np.matmul(var,self.corr),var)
         
+        #generate correlated normals using cov matrix
         a = stats.multivariate_normal(mean = self.avg, cov = cov)
         
+        #create the random variables
         x = a.rvs(self.size)
-        #print(x)
+        
+        #convert to a uniform distribution
         norm = stats.norm()
         x_unif = norm.cdf(x)
         
-        #print(np.corrcoef(x_unif[:,0],x_unif[:,1]))
-        
+        #new distribution to cast uniform dist to
         m1 = stats.norm()
         m2 = stats.norm()
 
+        #perform the transformation
         x1_trans = m1.ppf(x_unif[:, 0])
         x2_trans = m2.ppf(x_unif[:, 1])
+        
         
         x1 = m1.rvs(self.size)
         x2 = m2.rvs(self.size)
